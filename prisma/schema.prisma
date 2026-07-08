@@ -1,0 +1,96 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Expense {
+  id                  String    @id @default(cuid())
+  createdAt           DateTime  @default(now())
+  purchasedBy         String
+  paidTo              String
+  itemDescription     String
+  category            String
+  categoryParent      String
+  purchaseDate        DateTime
+  amountEur           Decimal   @db.Decimal(10, 2)
+  reimbursementMethod String    // "paypal" | "iban"
+  paypalAddress       String?
+  iban                String?
+  comment             String?
+  status              String    @default("pending") // "pending" | "reimbursed"
+  reimbursedAt        DateTime?
+  treasurerNote       String?
+  festivalYear        Int
+  receiptPath         String?
+  recurringExpenseId  String?
+  recurringExpense    RecurringExpense? @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
+}
+
+model Income {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  description    String
+  receivedFrom   String
+  category       String
+  categoryParent String
+  incomeDate     DateTime
+  amountEur      Decimal  @db.Decimal(10, 2)
+  comment        String?
+  festivalYear   Int
+  receiptPath    String?
+}
+
+// A template for a periodically-recurring expense (e.g. monthly storage rent).
+// Each due occurrence materializes as a normal Expense (status "pending"),
+// linked back here via Expense.recurringExpenseId, so the treasurer confirms
+// every occurrence exactly like a one-off expense.
+model RecurringExpense {
+  id                  String    @id @default(cuid())
+  createdAt           DateTime  @default(now())
+  description         String
+  category            String
+  categoryParent      String
+  amountEur           Decimal   @db.Decimal(10, 2)
+  paidTo              String
+  reimbursementMethod String    // "paypal" | "iban"
+  paypalAddress       String?
+  iban                String?
+  purchasedBy         String
+  comment             String?
+  interval            String    // "monthly" | "quarterly" | "yearly"
+  startDate           DateTime
+  endDate             DateTime?
+  isActive            Boolean   @default(true)
+  expenses            Expense[]
+}
+
+// Two-level hierarchy: an Ober-category has parentId == null; an
+// Unter-category points at its Ober-category via parentId. Linking by id
+// (not name) means renaming a category never has to touch its children.
+model Category {
+  id       String     @id @default(cuid())
+  name     String
+  type     String     // "expense" | "income"
+  parentId String?
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children Category[] @relation("CategoryHierarchy")
+  isActive Boolean    @default(true)
+
+  @@unique([name, type])
+}
+
+model CategoryProposal {
+  id                 String   @id @default(cuid())
+  createdAt          DateTime @default(now())
+  proposedName       String
+  proposalScope      String   // "ober" | "unter"
+  parentCategoryName String?  // required when proposalScope = "unter"
+  categoryType       String   // "expense" | "income"
+  proposedBy         String
+  status             String   @default("open") // "open" | "reviewed"
+}

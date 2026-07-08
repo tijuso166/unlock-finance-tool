@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: festivalfinance
+      POSTGRES_PASSWORD: festivalfinance
+      POSTGRES_DB: festivalfinance
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U festivalfinance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://festivalfinance:festivalfinance@db:5432/festivalfinance
+      MEMBER_PASSWORD: ${MEMBER_PASSWORD:-member123}
+      TREASURER_PASSWORD: ${TREASURER_PASSWORD:-treasurer123}
+      SESSION_SECRET: ${SESSION_SECRET:-please_change_this_to_a_long_random_string_minimum_32}
+      FESTIVAL_YEAR: ${FESTIVAL_YEAR:-2025}
+      NEXT_PUBLIC_BASE_PATH: /finanzen
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  uploads_data:
