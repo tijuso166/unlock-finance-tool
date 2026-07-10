@@ -3,7 +3,7 @@ set -e
 
 echo "🚀 Syncing database schema..."
 # db push creates tables on first run and updates schema safely on subsequent runs
-node node_modules/.bin/prisma db push --accept-data-loss 2>&1
+node node_modules/prisma/build/index.js db push --accept-data-loss 2>&1
 
 echo "🌱 Seeding categories (upserts – safe to run repeatedly)..."
 node prisma/seed-docker.js
