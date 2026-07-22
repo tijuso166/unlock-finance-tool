@@ -39,7 +39,7 @@ interface TicketListProps {
 }
 
 export default function TicketList({ initialStatus = 'all' }: TicketListProps) {
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/finanzen'
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [categories, setCategories] = useState<Category[]>([])

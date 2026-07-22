@@ -41,7 +41,7 @@ function formatEur(amount: number) {
 }
 
 export default function OverviewDashboard({ role }: OverviewDashboardProps) {
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/finanzen'
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
   const router = useRouter()
   const [data, setData] = useState<OverviewData | null>(null)
   const [loading, setLoading] = useState(true)

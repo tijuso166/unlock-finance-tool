@@ -13,7 +13,7 @@ const MAX_RECEIPT_BYTES = 10 * 1024 * 1024
 const RECEIPT_ACCEPT = '.pdf,.jpg,.jpeg,.png,.webp'
 
 export default function IncomeForm() {
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/finanzen'
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [obers, setObers] = useState<CategoryNode[]>([])
