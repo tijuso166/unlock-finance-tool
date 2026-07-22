@@ -44,7 +44,7 @@ function formatDate(dateStr: string) {
 }
 
 export default function EntryListView() {
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/finanzen'
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
   const [tab, setTab] = useState<Tab>('expenses')
   const [expenses, setExpenses] = useState<ExpenseEntry[]>([])

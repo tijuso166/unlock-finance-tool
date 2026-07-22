@@ -48,7 +48,7 @@ function formatEur(amount: string) {
 }
 
 export default function KategorienPage() {
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/finanzen'
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
   const [expenseTree, setExpenseTree] = useState<CategoryNode[]>([])
   const [incomeTree, setIncomeTree] = useState<CategoryNode[]>([])

@@ -6,12 +6,12 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: festivalfinance
-      POSTGRES_PASSWORD: festivalfinance
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: festivalfinance
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    networks:
+      - internal
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U festivalfinance"]
       interval: 10s
@@ -22,19 +22,23 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "127.0.0.1:8083:3000"
     environment:
-      DATABASE_URL: postgresql://festivalfinance:festivalfinance@db:5432/festivalfinance
-      MEMBER_PASSWORD: ${MEMBER_PASSWORD:-member123}
-      TREASURER_PASSWORD: ${TREASURER_PASSWORD:-treasurer123}
-      SESSION_SECRET: ${SESSION_SECRET:-please_change_this_to_a_long_random_string_minimum_32}
+      DATABASE_URL: ${DATABASE_URL}
+      MEMBER_PASSWORD: ${MEMBER_PASSWORD}
+      TREASURER_PASSWORD: ${TREASURER_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET}
       FESTIVAL_YEAR: ${FESTIVAL_YEAR:-2025}
-      NEXT_PUBLIC_BASE_PATH: /finanzen
     volumes:
       - uploads_data:/app/uploads
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - internal
+
+networks:
+  internal:
 
 volumes:
   postgres_data:

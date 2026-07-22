@@ -25,7 +25,7 @@ export default async function VerwaltungPage({
     prisma.categoryProposal.count({ where: { status: 'open' } }),
   ])
 
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/finanzen'
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
   return (
     <div className="min-h-screen bg-gray-950">

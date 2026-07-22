@@ -11,7 +11,7 @@ interface NavBarProps {
 export default function NavBar({ role }: NavBarProps) {
   const router = useRouter()
   const [loggingOut, setLoggingOut] = useState(false)
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/finanzen'
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
   async function handleLogout() {
     setLoggingOut(true)
