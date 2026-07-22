@@ -127,6 +127,7 @@ export default function EntryListView() {
               <option value="all">Alle Status</option>
               <option value="pending">Ausstehend</option>
               <option value="reimbursed">Erstattet</option>
+              <option value="paid">Bezahlt</option>
             </select>
           )}
           <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className={inputClass}>

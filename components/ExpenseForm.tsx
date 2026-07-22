@@ -32,8 +32,7 @@ export default function ExpenseForm() {
     categoryProposalParent: '',
     purchaseDate: new Date().toISOString().split('T')[0],
     amountEur: '',
-    reimbursementMethod: 'paypal' as 'paypal' | 'iban',
-    paypalAddress: '',
+    reimbursementNeeded: true,
     iban: '',
     purchasedBy: '',
     paidTo: '',
@@ -74,8 +73,7 @@ export default function ExpenseForm() {
       categoryProposalParent: '',
       purchaseDate: new Date().toISOString().split('T')[0],
       amountEur: '',
-      reimbursementMethod: 'paypal',
-      paypalAddress: '',
+      reimbursementNeeded: true,
       iban: '',
       purchasedBy: '',
       paidTo: '',
@@ -123,9 +121,8 @@ export default function ExpenseForm() {
       }
     }
     fd.append('amountEur', form.amountEur)
-    fd.append('reimbursementMethod', form.reimbursementMethod)
-    if (form.reimbursementMethod === 'paypal') fd.append('paypalAddress', form.paypalAddress)
-    else fd.append('iban', form.iban)
+    fd.append('reimbursementNeeded', String(form.reimbursementNeeded))
+    if (form.reimbursementNeeded) fd.append('iban', form.iban)
     fd.append('purchasedBy', form.purchasedBy)
     fd.append('paidTo', form.paidTo)
     if (form.comment) fd.append('comment', form.comment)
@@ -372,42 +369,29 @@ export default function ExpenseForm() {
         />
       </div>
 
-      {/* Reimbursement Method */}
+      {/* Reimbursement toggle */}
       <div>
-        <label className={labelClass}>Erstattungsmethode *</label>
+        <label className={labelClass}>Ist eine Erstattung notwendig? *</label>
         <div className="grid grid-cols-2 gap-3">
-          {(['paypal', 'iban'] as const).map((method) => (
+          {([true, false] as const).map((needed) => (
             <button
-              key={method}
+              key={String(needed)}
               type="button"
-              onClick={() => set('reimbursementMethod', method)}
+              onClick={() => set('reimbursementNeeded', needed)}
               className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all text-sm font-medium ${
-                form.reimbursementMethod === method
+                form.reimbursementNeeded === needed
                   ? 'border-amber-500 bg-amber-500/10 text-amber-400'
                   : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600'
               }`}
             >
-              {method === 'paypal' ? '💳 PayPal' : '🏦 IBAN'}
+              {needed ? 'Ja' : 'Nein'}
             </button>
           ))}
         </div>
       </div>
 
-      {/* PayPal / IBAN conditional */}
-      {form.reimbursementMethod === 'paypal' && (
-        <div>
-          <label className={labelClass}>PayPal-Adresse *</label>
-          <input
-            type="text"
-            value={form.paypalAddress}
-            onChange={(e) => set('paypalAddress', e.target.value)}
-            placeholder="name@beispiel.de"
-            required
-            className={inputClass}
-          />
-        </div>
-      )}
-      {form.reimbursementMethod === 'iban' && (
+      {/* IBAN – only relevant when a reimbursement is due */}
+      {form.reimbursementNeeded && (
         <div>
           <label className={labelClass}>IBAN *</label>
           <input

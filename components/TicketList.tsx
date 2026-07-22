@@ -11,8 +11,7 @@ interface Expense {
   category: string
   purchaseDate: string
   amountEur: number
-  reimbursementMethod: string
-  paypalAddress?: string | null
+  reimbursementNeeded: boolean
   iban?: string | null
   comment?: string | null
   status: string
@@ -160,9 +159,10 @@ export default function TicketList({ initialStatus = 'all' }: TicketListProps) {
             onChange={(e) => setFilterStatus(e.target.value)}
             className={inputClass}
           >
-            <option value="all">Alle Status</option>
+            <option value="all">Alle</option>
             <option value="pending">Ausstehend</option>
             <option value="reimbursed">Erstattet</option>
+            <option value="paid">Bezahlt</option>
           </select>
           <select
             value={filterCategory}
@@ -250,14 +250,15 @@ export default function TicketList({ initialStatus = 'all' }: TicketListProps) {
                     </td>
                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-1">
-                        {expense.status === 'pending' ? (
+                        {expense.status === 'pending' && (
                           <button
                             onClick={() => markReimbursed(expense.id)}
                             className="px-2 py-1 bg-green-700/50 hover:bg-green-600/60 text-green-300 rounded-lg text-xs transition-colors"
                           >
                             Erstattet
                           </button>
-                        ) : (
+                        )}
+                        {expense.status === 'reimbursed' && (
                           <button
                             onClick={() => markPending(expense.id)}
                             className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg text-xs transition-colors"
@@ -318,9 +319,7 @@ export default function TicketList({ initialStatus = 'all' }: TicketListProps) {
                   <DetailRow label="Betrag" value={formatEur(selected.amountEur)} highlight />
                   <DetailRow
                     label="Erstattung"
-                    value={selected.reimbursementMethod === 'paypal'
-                      ? `PayPal: ${selected.paypalAddress || '–'}`
-                      : `IBAN: ${selected.iban || '–'}`}
+                    value={selected.reimbursementNeeded ? `IBAN: ${selected.iban || '–'}` : 'Nicht notwendig'}
                   />
                   {selected.comment && <DetailRow label="Kommentar" value={selected.comment} />}
                   {selected.treasurerNote && (
@@ -393,14 +392,15 @@ export default function TicketList({ initialStatus = 'all' }: TicketListProps) {
                   >
                     Bearbeiten
                   </button>
-                  {selected.status === 'pending' ? (
+                  {selected.status === 'pending' && (
                     <button
                       onClick={() => markReimbursed(selected.id)}
                       className="px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-xl text-sm transition-colors"
                     >
                       Als erstattet markieren
                     </button>
-                  ) : (
+                  )}
+                  {selected.status === 'reimbursed' && (
                     <button
                       onClick={() => markPending(selected.id)}
                       className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm transition-colors"

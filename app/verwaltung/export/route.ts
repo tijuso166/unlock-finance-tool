@@ -41,10 +41,16 @@ export async function GET(request: NextRequest) {
 
     const headers = [
       'ID', 'Erstellt am', 'Gekauft von', 'Beschreibung', 'Kategorie',
-      'Kaufdatum', 'Betrag (EUR)', 'Erstattungsmethode', 'PayPal-Adresse', 'IBAN',
+      'Kaufdatum', 'Betrag (EUR)', 'Erstattung notwendig', 'IBAN',
       'Status', 'Erstattet am', 'Kommentar', 'Kassennotiz', 'Festivaljahr',
     ]
     let csv = BOM + headers.join(';') + '\n'
+
+    const statusLabels: Record<string, string> = {
+      pending: 'Ausstehend',
+      reimbursed: 'Erstattet',
+      paid: 'Bezahlt',
+    }
 
     for (const e of expenses) {
       const row = [
@@ -55,10 +61,9 @@ export async function GET(request: NextRequest) {
         e.category,
         formatDate(e.purchaseDate),
         formatAmount(e.amountEur),
-        e.reimbursementMethod === 'paypal' ? 'PayPal' : 'IBAN',
-        e.paypalAddress,
+        e.reimbursementNeeded ? 'Ja' : 'Nein',
         e.iban,
-        e.status === 'reimbursed' ? 'Erstattet' : 'Ausstehend',
+        statusLabels[e.status] || e.status,
         formatDate(e.reimbursedAt),
         e.comment,
         e.treasurerNote,

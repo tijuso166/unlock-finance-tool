@@ -18,11 +18,10 @@ model Expense {
   categoryParent      String
   purchaseDate        DateTime
   amountEur           Decimal   @db.Decimal(10, 2)
-  reimbursementMethod String    // "paypal" | "iban"
-  paypalAddress       String?
+  reimbursementNeeded Boolean
   iban                String?
   comment             String?
-  status              String    @default("pending") // "pending" | "reimbursed"
+  status              String    @default("pending") // "pending" | "reimbursed" | "paid"
   reimbursedAt        DateTime?
   treasurerNote       String?
   festivalYear        Int
@@ -46,9 +45,10 @@ model Income {
 }
 
 // A template for a periodically-recurring expense (e.g. monthly storage rent).
-// Each due occurrence materializes as a normal Expense (status "pending"),
-// linked back here via Expense.recurringExpenseId, so the treasurer confirms
-// every occurrence exactly like a one-off expense.
+// Each due occurrence materializes as a normal Expense (status "pending", or
+// "paid" when reimbursementNeeded is false), linked back here via
+// Expense.recurringExpenseId, so the treasurer confirms every occurrence
+// exactly like a one-off expense.
 model RecurringExpense {
   id                  String    @id @default(cuid())
   createdAt           DateTime  @default(now())
@@ -57,8 +57,7 @@ model RecurringExpense {
   categoryParent      String
   amountEur           Decimal   @db.Decimal(10, 2)
   paidTo              String
-  reimbursementMethod String    // "paypal" | "iban"
-  paypalAddress       String?
+  reimbursementNeeded Boolean
   iban                String?
   purchasedBy         String
   comment             String?

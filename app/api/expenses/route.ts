@@ -12,8 +12,7 @@ const baseExpenseFields = {
   categoryProposalScope: z.enum(['ober', 'unter']).optional(),
   categoryProposalParent: z.string().optional(),
   amountEur: z.number().positive('Betrag muss positiv sein'),
-  reimbursementMethod: z.enum(['paypal', 'iban']),
-  paypalAddress: z.string().optional(),
+  reimbursementNeeded: z.boolean(),
   iban: z.string().optional(),
   purchasedBy: z.string().min(1, 'Name erforderlich'),
   paidTo: z.string().min(1, 'Empfänger erforderlich'),
@@ -34,16 +33,22 @@ const recurringExpenseSchema = z.object({
   endDate: z.string().optional(),
 })
 
-const expenseSchema = z.discriminatedUnion('isRecurring', [oneTimeExpenseSchema, recurringExpenseSchema])
+const expenseSchema = z
+  .discriminatedUnion('isRecurring', [oneTimeExpenseSchema, recurringExpenseSchema])
+  .superRefine((data, ctx) => {
+    if (data.reimbursementNeeded && !data.iban?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'IBAN erforderlich', path: ['iban'] })
+    }
+  })
 
-// IBAN, PayPal address and the treasurer's internal note are only for the
-// treasurer's eyes – strip them for members before returning entries.
-function maskSensitiveFields<T extends { iban?: string | null; paypalAddress?: string | null; treasurerNote?: string | null }>(
+// IBAN and the treasurer's internal note are only for the treasurer's eyes –
+// strip them for members before returning entries.
+function maskSensitiveFields<T extends { iban?: string | null; treasurerNote?: string | null }>(
   expense: T,
   role: string | undefined
 ): T {
   if (role === 'treasurer') return expense
-  return { ...expense, iban: null, paypalAddress: null, treasurerNote: null }
+  return { ...expense, iban: null, treasurerNote: null }
 }
 
 export async function GET(request: NextRequest) {
@@ -90,8 +95,7 @@ export async function POST(request: NextRequest) {
     categoryProposalScope: (formData.get('categoryProposalScope') as string) || undefined,
     categoryProposalParent: (formData.get('categoryProposalParent') as string) || undefined,
     amountEur: parseFloat(formData.get('amountEur') as string),
-    reimbursementMethod: formData.get('reimbursementMethod') as string,
-    paypalAddress: (formData.get('paypalAddress') as string) || undefined,
+    reimbursementNeeded: formData.get('reimbursementNeeded') === 'true',
     iban: (formData.get('iban') as string) || undefined,
     purchasedBy: formData.get('purchasedBy') as string,
     paidTo: formData.get('paidTo') as string,
@@ -124,6 +128,9 @@ export async function POST(request: NextRequest) {
 
   const data = parsed.data
   const festivalYear = parseInt(process.env.FESTIVAL_YEAR || '2025')
+  // No reimbursement due means the association already paid directly – the
+  // entry is settled on creation, no treasurer confirmation step needed.
+  const initialStatus = data.reimbursementNeeded ? 'pending' : 'paid'
 
   let expense
   if (data.isRecurring) {
@@ -134,8 +141,7 @@ export async function POST(request: NextRequest) {
         categoryParent: data.categoryParent,
         amountEur: data.amountEur,
         paidTo: data.paidTo,
-        reimbursementMethod: data.reimbursementMethod,
-        paypalAddress: data.paypalAddress || null,
+        reimbursementNeeded: data.reimbursementNeeded,
         iban: data.iban || null,
         purchasedBy: data.purchasedBy,
         comment: data.comment || null,
@@ -155,13 +161,13 @@ export async function POST(request: NextRequest) {
         paidTo: data.paidTo,
         purchaseDate: new Date(data.startDate),
         amountEur: data.amountEur,
-        reimbursementMethod: data.reimbursementMethod,
-        paypalAddress: data.paypalAddress || null,
+        reimbursementNeeded: data.reimbursementNeeded,
         iban: data.iban || null,
         purchasedBy: data.purchasedBy,
         comment: data.comment || null,
         festivalYear,
         recurringExpenseId: recurring.id,
+        status: initialStatus,
       },
     })
   } else {
@@ -173,12 +179,12 @@ export async function POST(request: NextRequest) {
         paidTo: data.paidTo,
         purchaseDate: new Date(data.purchaseDate),
         amountEur: data.amountEur,
-        reimbursementMethod: data.reimbursementMethod,
-        paypalAddress: data.paypalAddress || null,
+        reimbursementNeeded: data.reimbursementNeeded,
         iban: data.iban || null,
         purchasedBy: data.purchasedBy,
         comment: data.comment || null,
         festivalYear,
+        status: initialStatus,
       },
     })
   }

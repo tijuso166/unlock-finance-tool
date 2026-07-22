@@ -41,8 +41,7 @@ export async function PATCH(
   }
   if (updateFields.purchasedBy !== undefined) data.purchasedBy = updateFields.purchasedBy
   if (updateFields.amountEur !== undefined) data.amountEur = parseFloat(updateFields.amountEur)
-  if (updateFields.reimbursementMethod !== undefined) data.reimbursementMethod = updateFields.reimbursementMethod
-  if (updateFields.paypalAddress !== undefined) data.paypalAddress = updateFields.paypalAddress || null
+  if (updateFields.reimbursementNeeded !== undefined) data.reimbursementNeeded = updateFields.reimbursementNeeded
   if (updateFields.iban !== undefined) data.iban = updateFields.iban || null
   if (updateFields.comment !== undefined) data.comment = updateFields.comment || null
   if (updateFields.treasurerNote !== undefined) data.treasurerNote = updateFields.treasurerNote || null

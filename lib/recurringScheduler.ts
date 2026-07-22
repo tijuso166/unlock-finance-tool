@@ -55,14 +55,13 @@ export async function runRecurringCheck() {
             paidTo: template.paidTo,
             purchaseDate: occurrence,
             amountEur: template.amountEur,
-            reimbursementMethod: template.reimbursementMethod,
-            paypalAddress: template.paypalAddress,
+            reimbursementNeeded: template.reimbursementNeeded,
             iban: template.iban,
             purchasedBy: template.purchasedBy,
             comment: template.comment,
             festivalYear,
             recurringExpenseId: template.id,
-            status: 'pending',
+            status: template.reimbursementNeeded ? 'pending' : 'paid',
           },
         })
       }
